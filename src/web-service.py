@@ -27,9 +27,12 @@ async def custom_route():
                     raise requests.RequestException()
                 response = requests.get(dependency_url)
                 if response.status_code == 200:
+                    span.add_event("ok-upstream-request")
+                    span.set_status(StatusCode.OK, str(e))
                     return response.json()
                 else:
                     print(f"Request failed with status code: {response.status_code}")
+                    raise requests.RequestException()
             except requests.RequestException as e:
                 span.record_exception(e)  # Attach exception event to the span
                 span.set_attribute("upstream-url", dependency_url)
